@@ -1,0 +1,46 @@
+name: GuildStats reports
+
+on:
+  schedule:
+    - cron: "0 9,10 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  reports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check local report time
+        id: schedule
+        shell: bash
+        run: |
+          local_hour="$(TZ=Europe/Warsaw date +%H)"
+          local_day="$(TZ=Europe/Warsaw date +%d)"
+          local_weekday="$(TZ=Europe/Warsaw date +%u)"
+          echo "is_report_time=$([[ "$local_hour" == "11" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "is_month_start=$([[ "$local_day" == "01" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "is_monday=$([[ "$local_weekday" == "1" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@v5
+        if: steps.schedule.outputs.is_report_time == 'true'
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        if: steps.schedule.outputs.is_report_time == 'true'
+        run: python -m pip install -r requirements.txt
+      - name: Send daily report
+        if: steps.schedule.outputs.is_report_time == 'true'
+        run: python guildstats_daily.py
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Send weekly report
+        if: steps.schedule.outputs.is_report_time == 'true' && steps.schedule.outputs.is_monday == 'true'
+        run: python guildstats_weekly.py
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Send monthly report
+        if: steps.schedule.outputs.is_report_time == 'true' && steps.schedule.outputs.is_month_start == 'true'
+        run: python guildstats_monthly.py
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
