@@ -109,7 +109,10 @@ def fetch_rankings():
 
 def format_report(rankings, death_rankings):
     medals = ("🥇", "🥈", "🥉")
-    lines = ["**🏆 TOP 3 ⚡ XP — The Haunted (wczoraj)**"]
+    report_date = datetime.now().astimezone().date() - timedelta(days=1)
+lines = [
+    f"**🏆 TOP 3 ⚡ XP — The Haunted ({report_date.strftime('%d.%m.%Y')})**"
+]
     for range_name, _, _ in RANGES:
         lines.extend(("", f"🔹 Przedział {range_name}"))
         for medal, (name, exp) in zip(medals, rankings[range_name][:3]):
