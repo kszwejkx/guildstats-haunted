@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+from datetime import datetime, timedelta
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -110,9 +111,9 @@ def fetch_rankings():
 def format_report(rankings, death_rankings):
     medals = ("🥇", "🥈", "🥉")
     report_date = datetime.now().astimezone().date() - timedelta(days=1)
-lines = [
-    f"**🏆 TOP 3 ⚡ XP — The Haunted ({report_date.strftime('%d.%m.%Y')})**"
-]
+    lines = [
+        f"**🏆 TOP 3 ⚡ XP — The Haunted ({report_date.strftime('%d.%m.%Y')})**"
+    ]
     for range_name, _, _ in RANGES:
         lines.extend(("", f"🔹 Przedział {range_name}"))
         for medal, (name, exp) in zip(medals, rankings[range_name][:3]):
